@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask App</title>
+    <style>
+        #preview {
+            display: none;
+            width: 100%;
+            max-width: 500px; /* Adjust the max width as needed */
+            height: auto;
+            margin-top: 20px;
+        }
+        #predictionResult {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Classification</h1>
+    <form action="/evaluate">
+        <button type="submit">Evaluate Model (Takes 2 minutes)</button>
+    </form>
+    <br>
+    <!-- Form for uploading image -->
+    <form action="/predict" method="post" enctype="multipart/form-data" id="uploadForm">
+        <input type="file" name="file" accept="image/*" id="fileInput">
+        <button type="button" onclick="submitForm()">SUBMIT</button>
+    </form>
+    
+    <!-- Image preview -->
+    <img id="preview" src="#" alt="Image Preview">
+
+    <!-- Result display area for prediction -->
+    <div id="predictionResult"></div>
+
+    <script>
+        // Function to display selected image preview
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('preview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    
+                    // Clear previous results when a new image is selected
+                    const predictionResultDiv = document.getElementById('predictionResult');
+                    predictionResultDiv.innerHTML = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Function to submit form asynchronously
+        function submitForm() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(result => {
+                    // Display prediction result
+                    const predictionResultDiv = document.getElementById('predictionResult');
+                    predictionResultDiv.innerHTML = `
+                        <p><strong>Predicted Class:</strong> ${result.predicted_class}</p>
+                        <p><strong>Confidence:</strong> ${result.predictions}</p>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Optionally, show error message
+                });
+            } else {
+                // Handle case where no file is selected
+                console.log('No file selected');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+flask
+flask-restful
+numpy
+matplotlib
+scikit-learn
+Pillow
+h5py
+tensorflow
